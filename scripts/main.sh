@@ -3,7 +3,7 @@
 # Created by argbash-init v2.10.0
 # ARG_OPTIONAL_SINGLE([min-len],[l],[Minimal sequence length to retain],[1400])
 # ARG_OPTIONAL_SINGLE([max-len],[L],[Maximal sequence length to retain],[1700])
-# ARG_OPTIONAL_SINGLE([merge_consensus],[m],[Identity on which to cluster consensus sequences across samples],[1])
+# ARG_OPTIONAL_SINGLE([merge-consensus],[m],[Identity on which to cluster consensus sequences across samples],[1])
 # ARG_OPTIONAL_SINGLE([reads-consensus],[r],[Number of reads to subsample from a cluster to draft the consensus sequence],[40])
 # ARG_OPTIONAL_SINGLE([threads],[t],[Number of threads to use],[8])
 # ARG_POSITIONAL_SINGLE([OUTPUT_DIR],[Output directory])
@@ -50,13 +50,13 @@ _arg_threads="8"
 print_help()
 {
 	printf '%s\n' "<The general help message of my script>"
-	printf 'Usage: %s [-l|--min-len <arg>] [-L|--max-len <arg>] [-m|--merge_consensus <arg>] [-r|--reads-consensus <arg>] [-t|--threads <arg>] [-h|--help] <OUTPUT_DIR> <PRIMER_SET> <FASTQ-1> [<FASTQ-2>] ... [<FASTQ-n>] ...\n' "$0"
+	printf 'Usage: %s [-l|--min-len <arg>] [-L|--max-len <arg>] [-m|--merge-consensus <arg>] [-r|--reads-consensus <arg>] [-t|--threads <arg>] [-h|--help] <OUTPUT_DIR> <PRIMER_SET> <FASTQ-1> [<FASTQ-2>] ... [<FASTQ-n>] ...\n' "$0"
 	printf '\t%s\n' "<OUTPUT_DIR>: Output directory"
 	printf '\t%s\n' "<PRIMER_SET>: Should be a fasta file in which the head primer should have \"head\" in its name (case-insensitive). Likewise for the tail primer. Both sequences should be those that appear in the cDNA's sense strand. sequences are not limited to the primers itself but can also include anchor sequences. Longer sequences generally give better results"
 	printf '\t%s\n' "<FASTQ>: FASTQ file, optionally gzipped"
 	printf '\t%s\n' "-l, --min-len: Minimal sequence length to retain (default: '1400')"
 	printf '\t%s\n' "-L, --max-len: Maximal sequence length to retain (default: '1700')"
-	printf '\t%s\n' "-m, --merge_consensus: Identity on which to cluster consensus sequences across samples (default: '1')"
+	printf '\t%s\n' "-m, --merge-consensus: Identity on which to cluster consensus sequences across samples (default: '1')"
 	printf '\t%s\n' "-r, --reads-consensus: Number of reads to subsample from a cluster to draft the consensus sequence (default: '40')"
 	printf '\t%s\n' "-t, --threads: Number of threads to use (default: '8')"
 	printf '\t%s\n' "-h, --help: Prints help"
@@ -92,13 +92,13 @@ parse_commandline()
 			-L*)
 				_arg_max_len="${_key##-L}"
 				;;
-			-m|--merge_consensus)
+			-m|--merge-consensus)
 				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
 				_arg_merge_consensus="$2"
 				shift
 				;;
-			--merge_consensus=*)
-				_arg_merge_consensus="${_key##--merge_consensus=}"
+			--merge-consensus=*)
+				_arg_merge_consensus="${_key##--merge-consensus=}"
 				;;
 			-m*)
 				_arg_merge_consensus="${_key##-m}"
