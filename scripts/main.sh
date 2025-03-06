@@ -6,9 +6,9 @@
 # ARG_OPTIONAL_SINGLE([merge_consensus],[m],[Identity on which to cluster consensus sequences across samples],[1])
 # ARG_OPTIONAL_SINGLE([reads-consensus],[r],[Number of reads to subsample from a cluster to draft the consensus sequence],[40])
 # ARG_OPTIONAL_SINGLE([threads],[t],[Number of threads to use],[8])
-# ARG_POSITIONAL_SINGLE([FASTQ_DIR],[Input directory with FASTQ files, optionally gzipped])
 # ARG_POSITIONAL_SINGLE([OUTPUT_DIR],[Output directory])
 # ARG_POSITIONAL_SINGLE([PRIMER_SET],[Should be a fasta file in which the head primer should have "head" in its name (case-insensitive). Likewise for the tail primer. Both sequences should be those that appear in the cDNA's sense strand. sequences are not limited to the primers itself but can also include anchor sequences. Longer sequences generally give better results])
+# ARG_POSITIONAL_INF([FASTQ],[FASTQ file, optionally gzipped],[1])
 # ARG_DEFAULTS_POS([])
 # ARG_HELP([<The general help message of my script>])
 # ARGBASH_GO()
@@ -36,9 +36,9 @@ begins_with_short_option()
 
 # THE DEFAULTS INITIALIZATION - POSITIONALS
 _positionals=()
-_arg_fastq_dir=
 _arg_output_dir=
 _arg_primer_set=
+_arg_fastq=('' )
 # THE DEFAULTS INITIALIZATION - OPTIONALS
 _arg_min_len="1400"
 _arg_max_len="1700"
@@ -50,10 +50,10 @@ _arg_threads="8"
 print_help()
 {
 	printf '%s\n' "<The general help message of my script>"
-	printf 'Usage: %s [-l|--min-len <arg>] [-L|--max-len <arg>] [-m|--merge_consensus <arg>] [-r|--reads-consensus <arg>] [-t|--threads <arg>] [-h|--help] <FASTQ_DIR> <OUTPUT_DIR> <PRIMER_SET>\n' "$0"
-	printf '\t%s\n' "<FASTQ_DIR>: Input directory with FASTQ files, optionally gzipped"
+	printf 'Usage: %s [-l|--min-len <arg>] [-L|--max-len <arg>] [-m|--merge_consensus <arg>] [-r|--reads-consensus <arg>] [-t|--threads <arg>] [-h|--help] <OUTPUT_DIR> <PRIMER_SET> <FASTQ-1> [<FASTQ-2>] ... [<FASTQ-n>] ...\n' "$0"
 	printf '\t%s\n' "<OUTPUT_DIR>: Output directory"
 	printf '\t%s\n' "<PRIMER_SET>: Should be a fasta file in which the head primer should have \"head\" in its name (case-insensitive). Likewise for the tail primer. Both sequences should be those that appear in the cDNA's sense strand. sequences are not limited to the primers itself but can also include anchor sequences. Longer sequences generally give better results"
+	printf '\t%s\n' "<FASTQ>: FASTQ file, optionally gzipped"
 	printf '\t%s\n' "-l, --min-len: Minimal sequence length to retain (default: '1400')"
 	printf '\t%s\n' "-L, --max-len: Maximal sequence length to retain (default: '1700')"
 	printf '\t%s\n' "-m, --merge_consensus: Identity on which to cluster consensus sequences across samples (default: '1')"
@@ -146,16 +146,20 @@ parse_commandline()
 
 handle_passed_args_count()
 {
-	local _required_args_string="'FASTQ_DIR', 'OUTPUT_DIR' and 'PRIMER_SET'"
-	test "${_positionals_count}" -ge 3 || _PRINT_HELP=yes die "FATAL ERROR: Not enough positional arguments - we require exactly 3 (namely: $_required_args_string), but got only ${_positionals_count}." 1
-	test "${_positionals_count}" -le 3 || _PRINT_HELP=yes die "FATAL ERROR: There were spurious positional arguments --- we expect exactly 3 (namely: $_required_args_string), but got ${_positionals_count} (the last one was: '${_last_positional}')." 1
+	local _required_args_string="'OUTPUT_DIR', 'PRIMER_SET' and 'FASTQ'"
+	test "${_positionals_count}" -ge 3 || _PRINT_HELP=yes die "FATAL ERROR: Not enough positional arguments - we require at least 3 (namely: $_required_args_string), but got only ${_positionals_count}." 1
 }
 
 
 assign_positional_args()
 {
 	local _positional_name _shift_for=$1
-	_positional_names="_arg_fastq_dir _arg_output_dir _arg_primer_set "
+	_positional_names="_arg_output_dir _arg_primer_set _arg_fastq "
+	_our_args=$((${#_positionals[@]} - 3))
+	for ((ii = 0; ii < _our_args; ii++))
+	do
+		_positional_names="$_positional_names _arg_fastq[$((ii + 1))]"
+	done
 
 	shift "$_shift_for"
 	for _positional_name in ${_positional_names}
@@ -184,14 +188,13 @@ MAX="$_arg_max_len"
 MERGE_CONSENSUS="$_arg_merge_consensus"
 READS_CONSENSUS="$_arg_reads_consensus"
 THREADS="$_arg_threads"
-FASTQ_DIR="$_arg_fastq_dir"
 OUTPUT_DIR="$_arg_output_dir"
 
 echo 'This is CONCOMPRA 0.0.2'
 echo 'for additional information and help, visit: https://github.com/willem-stock/CONCOMPRA'
 
 mkdir -p "$OUTPUT_DIR"/temporary/filteredPAFs
-for file in  "$FASTQ_DIR"/*.{fastq,fastq.gz}; do
+for file in  "${_arg_fastq[@]}"; do
 	NO_DIR_NAME="$(basename "$file")"
     if [[ "$file" == *.fastq.gz ]]; then
         zcat "$file" | awk -v min=$MIN -v max=$MAX 'BEGIN {FS = "\t"; OFS = "\n"}
