@@ -165,7 +165,7 @@ READ_COUNT=$(( $(awk '{print $1/4}' <(wc -l $FASTQ_FILE)) ))
 echo -n "total;$READ_COUNT" > total.log
 
 #searches and trims primers
-$TEMPLATE_DIR/primer-chop/bin/primer-chop -q $PRIMER_SET $FASTQ_FILE primerchop_out
+"$TEMPLATE_DIR"/primer-chop/bin/primer-chop -q "$PRIMER_SET" "$FASTQ_FILE" primerchop_out
 
 #retain only the highest quality reads
 filtlong --keep_percent 80 primerchop_out/good-fwd.fq > primerchop_out/good-fwd.filt.fq
@@ -173,7 +173,7 @@ filtlong --keep_percent 80 primerchop_out/good-fwd.fq > primerchop_out/good-fwd.
 vsearch -fastq_filter primerchop_out/good-fwd.filt.fq --fastaout primerchop_out/good-fwd.filt.fa --fastq_qmax 90
 
 #kmer count in the forward oriented reads with forward and reverse primers detected
-python $TEMPLATE_DIR/kmer_umap_OPTICS.py primerchop_out/good-fwd.filt.fa $THREADS
+NUMBA_NUM_THREADS="$THREADS" python $TEMPLATE_DIR/kmer_umap_OPTICS.py primerchop_out/good-fwd.filt.fa "$THREADS"
 CLUSTERS_CNT=$(awk '($2 ~ /[0-9]/) {print $2}' freqs.txthdbscan.output.tsv | sort -nr | uniq | head -n1)
 
 echo "drafting consensus sequences for $CLEAN_NAME"

@@ -218,14 +218,11 @@ find "$OUTPUT_DIR"/temporary -type f -empty -delete
 # Run consensus generation in parallel
 i=0
 for file in "$OUTPUT_DIR"/temporary/*.fastq; do
-    ((i=i%THREADS)) || true
-    ((i++==0)) && wait
     bash "$TEMPLATE_DIR/consensus_generation.sh" \
     	--reads-consensus "$READS_CONSENSUS" \
     	--threads "$THREADS" \
-    	"$OUTPUT_DIR"/temporary "$(basename "$file")" "$PRIMER_SET" &
+    	"$OUTPUT_DIR"/temporary "$(basename "$file")" "$PRIMER_SET"
 done
-wait
 
 mkdir -p "$OUTPUT_DIR"/results
 
@@ -244,13 +241,13 @@ awk -i inplace '/^>/ {
     print ">" b[2];
     next;
 }
-{print}' "$OUTPUT_DIR"/results/clustered_consensus.fasta #return headers of the fasta to the original format, remove additional info from cluster_fast
+{print}' "$OUTPUT_DIR"/results/clustered_consensus.fasta # return headers of the fasta to the original format, remove additional info from cluster_fast
 
 
 minimap2 -d "$OUTPUT_DIR"/temporary/across_sample_consensus_sequences.mmi "$OUTPUT_DIR"/results/clustered_consensus.fasta
 mkdir -p "$OUTPUT_DIR"/unmapped # folder for any unmapped reads
 
-#map reads to the consensus sequences
+# map reads to the consensus sequences
 for file in "$OUTPUT_DIR"/temporary/*.fastq;
 do
 	cd "$OUTPUT_DIR"/temporary
